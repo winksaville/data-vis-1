@@ -1,0 +1,14 @@
+[package]
+name = "data-vis-1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+plotters = "0.3.5"
+egui = "0.23"
+eframe = "0.23"
+#egui-plotter = "0.3" # Causes compile error
+egui-plotter = { git = "https://github.com/winksaville/egui-plotter.git", branch = "update-eframe-egui-to-0.23" }
+
