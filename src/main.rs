@@ -37,7 +37,7 @@ impl Chart3d {
         // Create a new 3d chart with all mouse controls enabled and the chart slightly angled
         let chart = Chart::new(())
             .mouse(MouseConfig::enabled())
-            .pitch(0.7)
+            .pitch(0.3)
             .yaw(0.7)
             .builder_cb(Box::new(|area, transform, _d| {
                 // Build a chart like you would in any other plotter chart.
@@ -47,7 +47,7 @@ impl Chart3d {
                 let z_axis = (-3.0..3.0).step(0.1);
 
                 let mut chart = ChartBuilder::on(area)
-                    .caption(format!("3D Plot Test"), (FontFamily::SansSerif, 20))
+                    .caption("3D Plot Test", (FontFamily::SansSerif, 20))
                     .build_cartesian_3d(x_axis, -3.0..3.0, z_axis)
                     .unwrap();
 
