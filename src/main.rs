@@ -46,11 +46,13 @@ impl Chart3d {
                 let x_axis = (-3.0..3.0).step(0.1);
                 let z_axis = (-3.0..3.0).step(0.1);
 
+                // Define a chart with a caption and 3d cartesian coordinate system
                 let mut chart = ChartBuilder::on(area)
                     .caption("Data visualization 1", (FontFamily::SansSerif, 20))
                     .build_cartesian_3d(x_axis, -3.0..3.0, z_axis)
                     .unwrap();
 
+                // Position the camera
                 chart.with_projection(|mut pb| {
                     pb.yaw = transform.yaw;
                     pb.pitch = transform.pitch;
@@ -58,6 +60,7 @@ impl Chart3d {
                     pb.into_matrix()
                 });
 
+                // Draw a axis, grid and grid labels
                 chart
                     .configure_axes()
                     .light_grid_style(BLACK.mix(0.15))
@@ -65,6 +68,7 @@ impl Chart3d {
                     .draw()
                     .unwrap();
 
+                // Draw a SurfaceSeries in BLUE and it's label is "Surface"
                 chart
                     .draw_series(
                         SurfaceSeries::xoz(
@@ -80,6 +84,7 @@ impl Chart3d {
                         Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled())
                     });
 
+                // Draw a LineSeries in BLACK and it's label is "Line"
                 chart
                     .draw_series(LineSeries::new(
                         (-100..100)
@@ -91,6 +96,7 @@ impl Chart3d {
                     .label("Line")
                     .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLACK));
 
+                // Draw the legend for all elements in the chart
                 chart
                     .configure_series_labels()
                     .border_style(BLACK)
