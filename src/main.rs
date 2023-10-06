@@ -4,8 +4,10 @@
 
 use std::time::Duration;
 
+use data_vis_1::my_model;
 use eframe::egui::{self, CentralPanel, Visuals};
 use egui_plotter::{Chart, MouseConfig};
+use linregress::assert_almost_eq;
 use plotters::prelude::*;
 
 fn main() {
@@ -72,9 +74,21 @@ impl Chart3d {
                 chart
                     .draw_series(
                         SurfaceSeries::xoz(
-                            (-30..30).map(|f| f as f64 / 10.0),
-                            (-30..30).map(|f| f as f64 / 10.0),
-                            |x, z| (x * x + z * z).cos(),
+                            (-30..30).map(|f| {
+                                let a = f as f64 / 10.0;
+                                //println!("a: {a:0.2?}");
+                                a
+                            }),
+                            (-30..30).map(|f| {
+                                let b = f as f64 / 10.0;
+                                //println!("b: {b:0.2?}");
+                                b
+                            }),
+                            |x, z| {
+                                let r = (x * x + z * z).cos();
+                                //println!("x: {x:0.2?}, z: {z:0.2?}, r: {r:0.2?}");
+                                r
+                            },
                         )
                         .style(BLUE.mix(0.2).filled()),
                     )
@@ -82,6 +96,39 @@ impl Chart3d {
                     .label("Surface")
                     .legend(|(x, y)| {
                         Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled())
+                    });
+
+                let model = my_model();
+
+                // Draw a SurfaceSeries in RED and it's label is "Plane", 1.5 x 1.5 at height 1.0
+                chart
+                    .draw_series(
+                        SurfaceSeries::xoz(
+                            (-15..=15).map(|f| {
+                                let a = f as f64 / 10.0;
+                                //println!("a: {a:0.2?}");
+                                a
+                            }),
+                            (-15..=15).map(|f| {
+                                let b = f as f64 / 10.0;
+                                //println!("b: {b:0.2?}");
+                                b
+                            }),
+                            |x, z| {
+                                let data = vec![("x", vec![x]), ("z", vec![z])];
+                                let r = model.predict(data.clone()).unwrap();
+                                //println!("data.len(): {} data: {:0.2?} r.len(): {} r: {:0.2?}", data.len(), data, r.len(), r);
+                                assert_eq!(r.len(), 1);
+                                assert_almost_eq!(r[0], 1.0, 1e-2);
+                                r[0]
+                            },
+                        )
+                        .style(RED.mix(0.2).filled()),
+                    )
+                    .unwrap()
+                    .label("Plane")
+                    .legend(|(x, y)| {
+                        Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], RED.mix(0.5).filled())
                     });
 
                 // Draw a LineSeries in BLACK and it's label is "Line"
