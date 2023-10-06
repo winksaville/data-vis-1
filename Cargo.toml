@@ -11,6 +11,7 @@ egui = "0.23"
 eframe = "0.23"
 #egui-plotter = "0.3" # Causes compile error
 egui-plotter = { git = "https://github.com/winksaville/egui-plotter.git", branch = "update-eframe-egui-to-0.23" }
+linregress = "0.5.3"
 
 [build-dependencies]
 toml = "0.5"
