@@ -65,6 +65,9 @@ impl Chart3d {
                 // Draw a axis, grid and grid labels
                 chart
                     .configure_axes()
+                    .x_formatter(&|x| format!("x={x:0.1}"))
+                    .y_formatter(&|y| format!("y={y:0.1}"))
+                    .z_formatter(&|z| format!("z={z:0.1}"))
                     .light_grid_style(BLACK.mix(0.15))
                     .max_light_lines(3)
                     .draw()
