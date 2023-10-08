@@ -1,13 +1,8 @@
-//! Simple 3d plot example derived from
-//! [eframe](https://docs.rs/eframe/0.22.0/eframe/index.html#usage-native) and
-//! [plotters](https://github.com/plotters-rs/plotters/blob/master/plotters/examples/3d-plot.rs)
-
 use std::time::Duration;
 
-use data_vis_1::plane_model;
+use data_vis_1::{sanco2_coeffs, predict_y};
 use eframe::egui::{self, CentralPanel, Visuals};
 use egui_plotter::{Chart, MouseConfig};
-use linregress::assert_almost_eq;
 use plotters::prelude::*;
 
 fn main() {
@@ -45,13 +40,14 @@ impl Chart3d {
                 // Build a chart like you would in any other plotter chart.
                 // The drawing area and projection transformations are provided
                 // by the callback, but otherwise everything else is the same.
-                let x_axis = (-3.0..3.0).step(0.1);
-                let z_axis = (-3.0..3.0).step(0.1);
+                let x_axis = (-15.0..110.0).step(10.0);
+                let z_axis = (140.0..180.0).step(10.0);
+                let y_axis = (0.0..10.0).step(0.1);
 
                 // Define a chart with a caption and 3d cartesian coordinate system
                 let mut chart = ChartBuilder::on(area)
                     .caption("Data visualization 1", (FontFamily::SansSerif, 20))
-                    .build_cartesian_3d(x_axis, -3.0..3.0, z_axis)
+                    .build_cartesian_3d(x_axis, y_axis, z_axis)
                     .unwrap();
 
                 // Position the camera
@@ -73,84 +69,38 @@ impl Chart3d {
                     .draw()
                     .unwrap();
 
-                // Draw a SurfaceSeries in BLUE and it's label is "Surface"
+                let coeffs = sanco2_coeffs();
+
+                // Draw a SurfaceSeries in GREEN and it's label is "Scan02"
                 chart
                     .draw_series(
                         SurfaceSeries::xoz(
-                            (-30..30).map(|f| {
+                            (-15..=110).map(|f| {
                                 #[allow(clippy::let_and_return)]
-                                let a = f as f64 / 10.0;
-                                //println!("a: {a:0.2?}");
+                                let a = f as f64;
+                                //println!("sanco2 a: {a:0.2?}");
                                 a
                             }),
-                            (-30..30).map(|f| {
+                            (140..=180).map(|f| {
                                 #[allow(clippy::let_and_return)]
-                                let b = f as f64 / 10.0;
-                                //println!("b: {b:0.2?}");
+                                let b = f as f64;
+                                //println!("sanco2 b: {b:0.2?}");
                                 b
                             }),
                             |x, z| {
                                 #[allow(clippy::let_and_return)]
-                                let r = (x * x + z * z).cos();
-                                //println!("x: {x:0.2?}, z: {z:0.2?}, r: {r:0.2?}");
-                                r
-                            },
-                        )
-                        .style(BLUE.mix(0.2).filled()),
-                    )
-                    .unwrap()
-                    .label("Surface")
-                    .legend(|(x, y)| {
-                        Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled())
-                    });
-
-                let model = plane_model();
-
-                // Draw a SurfaceSeries in RED and it's label is "Plane", 1.5 x 1.5 at height 1.0
-                chart
-                    .draw_series(
-                        SurfaceSeries::xoz(
-                            (-15..=15).map(|f| {
-                                #[allow(clippy::let_and_return)]
-                                let a = f as f64 / 10.0;
-                                //println!("a: {a:0.2?}");
-                                a
-                            }),
-                            (-15..=15).map(|f| {
-                                #[allow(clippy::let_and_return)]
-                                let b = f as f64 / 10.0;
-                                //println!("b: {b:0.2?}");
-                                b
-                            }),
-                            |x, z| {
-                                let data = vec![("x", vec![x]), ("z", vec![z])];
-                                #[allow(clippy::let_and_return)]
-                                let r = model.predict(data.clone()).unwrap();
-                                //println!("data.len(): {} data: {:0.2?} r.len(): {} r: {:0.2?}", data.len(), data, r.len(), r);
-                                assert_eq!(r.len(), 1);
-                                assert_almost_eq!(r[0], 1.0, 1e-2);
-                                r[0]
+                                let y = predict_y(x, z,&coeffs);
+                                //println!("sanco2: x:{x:0.2} z:{z:0.2} = y:{y:0.2}");
+                                y
                             },
                         )
                         .style(RED.mix(0.2).filled()),
                     )
                     .unwrap()
-                    .label("Plane")
+                    .label("Sanc02")
                     .legend(|(x, y)| {
                         Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], RED.mix(0.5).filled())
                     });
-
-                // Draw a LineSeries in BLACK and it's label is "Line"
-                chart
-                    .draw_series(LineSeries::new(
-                        (-100..100)
-                            .map(|y| y as f64 / 40.0)
-                            .map(|y| ((y * 10.0).sin(), y, (y * 10.0).cos())),
-                        &BLACK,
-                    ))
-                    .unwrap()
-                    .label("Line")
-                    .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], BLACK));
 
                 // Draw the legend for all elements in the chart
                 chart
@@ -171,6 +121,9 @@ impl eframe::App for Chart3d {
         });
 
         // Limit framerate to 100fps
+        //println!("Sleeping..");
+        //std::thread::sleep(Duration::from_millis(2000));
+        //println!();
         std::thread::sleep(Duration::from_millis(10));
         ctx.request_repaint();
     }

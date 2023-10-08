@@ -1,161 +1,123 @@
-use linregress::{FormulaRegressionBuilder, RegressionDataBuilder, RegressionModel};
+use nalgebra as na;
+use lazy_static::lazy_static;
 
-pub fn plane_model() -> RegressionModel {
-    // Given data points as (x, y, z) tuples
-    let points = [
-        (1.0, 1.0, 0.0),
-        (-1.0, 1.0, 0.0),
-        (0.0, 1.0, 1.0),
-        (0.5, 1.0, 0.5),
-    ];
-
-    let x: Vec<_> = points.iter().map(|p| p.0).collect();
-    let y: Vec<_> = points.iter().map(|p| p.1).collect();
-    let z: Vec<_> = points.iter().map(|p| p.2).collect();
-
-    // Constructing data using a vector of tuples
-    let data_tuples = vec![("x", x), ("y", y), ("z", z)];
-
-    // Setup regression data
-    let data = RegressionDataBuilder::new()
-        .build_from(data_tuples)
-        .unwrap();
-
-    // Define the regression formula
-    let formula = "y ~ x + z";
-    let model = FormulaRegressionBuilder::new()
-        .data(&data)
-        .formula(formula)
-        .fit()
-        .unwrap();
-
-    model
+pub struct Point3D {
+    x: f64,
+    y: f64,
+    z: f64,
 }
 
-// Sanden SANCO2 from page 13 of this manual:
-//   https://static1.squarespace.com/static/5c1a79ca96d455dcbffdc742/t/5c474cee562fa759dd733b04/1548176625850/Sanden_sanc02_technical-info_10-2017_4.pdf
-pub fn sanc02_model() -> RegressionModel {
-    // Given data points as (x, y, z) tuples
-    // x -> Ambient, y -> COP, z -> outlet temp
-    let points = [
-        (-13.0, 1.75, 140.0),
-        (-13.0, 1.7, 150.0),
-        (-13.0, 1.6, 160.0),
-        (-4.0, 2.0, 140.0),
-        (-4.0, 1.8, 150.0),
-        (-4.0, 1.9, 160.0),
-        (5.0, 2.2, 140.0),
-        (5.0, 2.2, 150.0),
-        (5.0, 2.1, 160.0),
-        (5.0, 1.95, 175.0),
-        (35.0, 3.35, 140.0),
-        (35.0, 3.55, 150.0),
-        (35.0, 3.45, 160.0),
-        (35.0, 3.2, 175.0),
-        (44.0, 4.25, 140.0),
-        (44.0, 4.1, 150.0),
-        (44.0, 3.9, 160.0),
-        (44.0, 3.55, 175.0),
-        (68.0, 5.2, 140.0),
-        (68.0, 4.75, 150.0),
-        (68.0, 4.4, 160.0),
-        (68.0, 3.9, 175.0),
-        (77.0, 4.9, 140.0),
-        (77.0, 4.6, 150.0),
-        (77.0, 4.35, 160.0),
-        (77.0, 4.0, 175.0),
-        (108.0, 3.8, 140.0),
-        (108.0, 4.0, 150.0),
-        (108.0, 3.95, 160.0),
+impl Point3D {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Self { x, y, z }
+    }
+}
+
+// private use scanc02_points()
+lazy_static! {
+    // Sanden SANCO2 from page 13 of this manual:
+    //   https://static1.squarespace.com/static/5c1a79ca96d455dcbffdc742/t/5c474cee562fa759dd733b04/1548176625850/Sanden_sanc02_technical-info_10-2017_4.pdf
+    static ref SANCO2_POINTS: [Point3D; 29] = [
+        Point3D::new(-13.0, 1.75, 140.0),
+        Point3D::new(-13.0, 1.7, 150.0),
+        Point3D::new(-13.0, 1.6, 160.0),
+        Point3D::new(-4.0, 2.0, 140.0),
+        Point3D::new(-4.0, 1.8, 150.0),
+        Point3D::new(-4.0, 1.9, 160.0),
+        Point3D::new(5.0, 2.2, 140.0),
+        Point3D::new(5.0, 2.2, 150.0),
+        Point3D::new(5.0, 2.1, 160.0),
+        Point3D::new(5.0, 1.95, 175.0),
+        Point3D::new(35.0, 3.35, 140.0),
+        Point3D::new(35.0, 3.55, 150.0),
+        Point3D::new(35.0, 3.45, 160.0),
+        Point3D::new(35.0, 3.2, 175.0),
+        Point3D::new(44.0, 4.25, 140.0),
+        Point3D::new(44.0, 4.1, 150.0),
+        Point3D::new(44.0, 3.9, 160.0),
+        Point3D::new(44.0, 3.55, 175.0),
+        Point3D::new(68.0, 5.2, 140.0),
+        Point3D::new(68.0, 4.75, 150.0),
+        Point3D::new(68.0, 4.4, 160.0),
+        Point3D::new(68.0, 3.9, 175.0),
+        Point3D::new(77.0, 4.9, 140.0),
+        Point3D::new(77.0, 4.6, 150.0),
+        Point3D::new(77.0, 4.35, 160.0),
+        Point3D::new(77.0, 4.0, 175.0),
+        Point3D::new(108.0, 3.8, 140.0),
+        Point3D::new(108.0, 4.0, 150.0),
+        Point3D::new(108.0, 3.95, 160.0),
     ];
+}
 
-    let x: Vec<_> = points.iter().map(|p| p.0).collect();
-    let y: Vec<_> = points.iter().map(|p| p.1).collect();
-    let z: Vec<_> = points.iter().map(|p| p.2).collect();
+pub fn sanco2_points() -> &'static [Point3D] {
+    &*SANCO2_POINTS
+}
 
-    // Constructing data using a vector of tuples
-    let data_tuples = vec![("x", x), ("y", y), ("z", z)];
+pub fn polynomial_regression(points: &[Point3D]) -> na::DVector<f64> {
+    let n = points.len();
+    let mut design_matrix = na::DMatrix::<f64>::zeros(n, 10);
+    let mut dependent_var = na::DVector::<f64>::zeros(n);
 
-    // Setup regression data
-    let data = RegressionDataBuilder::new()
-        .build_from(data_tuples)
-        .unwrap();
+    for (i, point) in points.iter().enumerate() {
+        design_matrix[(i, 0)] = point.x.powi(3);
+        design_matrix[(i, 1)] = point.x.powi(2) * point.z;
+        design_matrix[(i, 2)] = point.x * point.z.powi(2);
+        design_matrix[(i, 3)] = point.z.powi(3);
+        design_matrix[(i, 4)] = point.x.powi(2);
+        design_matrix[(i, 5)] = point.x * point.z;
+        design_matrix[(i, 6)] = point.z.powi(2);
+        design_matrix[(i, 7)] = point.x;
+        design_matrix[(i, 8)] = point.z;
+        design_matrix[(i, 9)] = 1.0;
+        dependent_var[i] = point.y;
+    }
 
-    // Define the regression formula
-    let formula = "y ~ x + z";
-    let model = FormulaRegressionBuilder::new()
-        .data(&data)
-        .formula(formula)
-        .fit()
-        .unwrap();
+    let xt = design_matrix.transpose();
+    #[allow(clippy::let_and_return)]
+    let coefficients = (xt.clone() * design_matrix).try_inverse().unwrap() * xt * dependent_var;
+    //println!("polynomial_regression:- coefficients: {coefficients:?}");
+    coefficients
+}
 
-    model
+// Predict Y value
+pub fn predict_y(x: f64, z: f64, coeffs: &na::DVector<f64>) -> f64 {
+    coeffs[0] * x.powi(3)
+        + coeffs[1] * x.powi(2) * z
+        + coeffs[2] * x * z.powi(2)
+        + coeffs[3] * z.powi(3)
+        + coeffs[4] * x.powi(2)
+        + coeffs[5] * x * z
+        + coeffs[6] * z.powi(2)
+        + coeffs[7] * x
+        + coeffs[8] * z
+        + coeffs[9]
+}
+
+pub fn mean_squared_error(points: &[Point3D], coeffs: &na::DVector<f64>) -> f64 {
+    let number_points = points.len() as f64;
+    points
+        .iter()
+        .map(|point| (point.y - predict_y(point.x, point.y, coeffs)).powi(2))
+        .sum::<f64>()
+        / number_points
+}
+
+pub fn sanco2_coeffs() -> na::DVector<f64> {
+    polynomial_regression(sanco2_points())
 }
 
 #[cfg(test)]
 mod test {
-    use linregress::assert_almost_eq;
-
     use super::*;
 
     #[test]
     fn test1() {
-        let model = plane_model();
+        let coeffs = sanco2_coeffs();
 
-        // Predict y for the test kkkoint (0, 0.5)
-        let test_data = vec![("x", vec![0.0]), ("z", vec![0.5])];
-        let predictions: Vec<f64> = model.predict(test_data.clone()).unwrap();
-
-        let x = test_data.get(0).unwrap().1[0];
-        let z = test_data.get(1).unwrap().1[0];
-
-        let y_predicted = predictions.get(0).expect("No prediction found");
-        println!("Predicted y value for ({}, {}): {}", x, z, y_predicted);
-        assert_eq!(*y_predicted, 1.0);
-    }
-
-    #[test]
-    fn test_36_xz_values() {
-        // Get the mode print various values
-        let model = plane_model();
-        let parameters: Vec<_> = model.iter_parameter_pairs().collect();
-        println!("parameters: {parameters:?}");
-        let pvalues: Vec<_> = model.iter_p_value_pairs().collect();
-        println!("pvalues: {pvalues:?}");
-        let standard_errors: Vec<_> = model.iter_se_pairs().collect();
-        println!("standard_errors: {standard_errors:?}");
-
-        // Precompute the predictions for the test data
-        let mut test_data: Vec<(&str, Vec<f64>)> = vec![];
-        let mut inner = 0;
-        for a in (-3..3).map(|f| f as f64 / 10.0) {
-            for b in (-3..3).map(|f| f as f64 / 10.0) {
-                inner = inner + 1;
-                let mut data = vec![("x", vec![a]), ("z", vec![b])];
-                test_data.append(&mut data);
-            }
-        }
-        println!(
-            "inner: {inner} test_data.len(): {} x: {:?}",
-            test_data.len(),
-            test_data
-        );
-        assert_eq!(test_data.len(), inner * 2);
-
-        // Now predict the values, I expected {inner} number of predictions but there was only 1?
-        let predictions = model.predict(test_data).unwrap();
-        println!("predictions.len(): {} predictions: {:0.2?} WHY is predections.len() only 1, expecting {inner}?", predictions.len(), predictions);
-        assert_eq!(predictions.len(), 1); // This should fail
-        assert_ne!(predictions.len(), inner); // I was expecting to pass
-
-        //
-        for a in (-3..3).map(|f| f as f64 / 10.0) {
-            for b in (-3..3).map(|f| f as f64 / 10.0) {
-                let data = vec![("x", vec![a]), ("z", vec![b])];
-                let x = model.predict(data.clone()).unwrap();
-                assert_almost_eq!(x[0], 1.0, 1e-2);
-                //println!("x.len(): {} x: {:0.2?}", x.len(), x);
-            }
-        }
+        // A simple test might be to ensure the MSE is below a certain threshold
+        let mse = mean_squared_error(sanco2_points(), &coeffs);
+        println!("test_regression: mse={mse}");
+        assert!(mse < 1.0); // Not good enough if it fails
     }
 }
