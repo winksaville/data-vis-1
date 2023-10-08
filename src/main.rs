@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use data_vis_1::my_model;
+use data_vis_1::plane_model;
 use eframe::egui::{self, CentralPanel, Visuals};
 use egui_plotter::{Chart, MouseConfig};
 use linregress::assert_almost_eq;
@@ -78,16 +78,19 @@ impl Chart3d {
                     .draw_series(
                         SurfaceSeries::xoz(
                             (-30..30).map(|f| {
+                                #[allow(clippy::let_and_return)]
                                 let a = f as f64 / 10.0;
                                 //println!("a: {a:0.2?}");
                                 a
                             }),
                             (-30..30).map(|f| {
+                                #[allow(clippy::let_and_return)]
                                 let b = f as f64 / 10.0;
                                 //println!("b: {b:0.2?}");
                                 b
                             }),
                             |x, z| {
+                                #[allow(clippy::let_and_return)]
                                 let r = (x * x + z * z).cos();
                                 //println!("x: {x:0.2?}, z: {z:0.2?}, r: {r:0.2?}");
                                 r
@@ -101,24 +104,27 @@ impl Chart3d {
                         Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled())
                     });
 
-                let model = my_model();
+                let model = plane_model();
 
                 // Draw a SurfaceSeries in RED and it's label is "Plane", 1.5 x 1.5 at height 1.0
                 chart
                     .draw_series(
                         SurfaceSeries::xoz(
                             (-15..=15).map(|f| {
+                                #[allow(clippy::let_and_return)]
                                 let a = f as f64 / 10.0;
                                 //println!("a: {a:0.2?}");
                                 a
                             }),
                             (-15..=15).map(|f| {
+                                #[allow(clippy::let_and_return)]
                                 let b = f as f64 / 10.0;
                                 //println!("b: {b:0.2?}");
                                 b
                             }),
                             |x, z| {
                                 let data = vec![("x", vec![x]), ("z", vec![z])];
+                                #[allow(clippy::let_and_return)]
                                 let r = model.predict(data.clone()).unwrap();
                                 //println!("data.len(): {} data: {:0.2?} r.len(): {} r: {:0.2?}", data.len(), data, r.len(), r);
                                 assert_eq!(r.len(), 1);

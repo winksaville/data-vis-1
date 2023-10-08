@@ -12,6 +12,10 @@ Added src/lib.rs with my_model from which is based on
 [liner-regression-explore1/example/gpt4-1.rs](https://github.com/winksaville/linear-regression-explore1/blob/1ce9cd45cdc95741b9e4962b7a9085e3d57aad21/examples/gpt4-1.rs).
 I use this model to in `main()` to generate a RED square plane 1.5 x 1.5 units at a height of 1.0.
 
+Also prompted GPT-4 with
+["Looks good and it prints the coefficients. Now I'd like to check the "quality" of the result, could you write a few tests?"](https://chat.openai.com/share/1d6ab013-9bf9-4b30-90c8-bcfd08294e2b)
+and it added predict, mean_squared_error and a test.
+
 ## How to run
 
 ```bash
