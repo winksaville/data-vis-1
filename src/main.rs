@@ -158,10 +158,13 @@ impl eframe::App for Chart3d {
         });
 
         // Limit framerate to 100fps
+        std::thread::sleep(Duration::from_millis(10));
+
+        // Uncomment to slow down the framerate to 0.5fps
         //println!("Sleeping..");
         //std::thread::sleep(Duration::from_millis(2000));
         //println!();
-        std::thread::sleep(Duration::from_millis(10));
+
         ctx.request_repaint();
     }
 }
