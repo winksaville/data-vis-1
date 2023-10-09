@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use nalgebra as na;
 use data_vis_1::{predict_y, sanco2_coeffs, sanco2_points};
 use eframe::egui::{self, CentralPanel, Visuals};
 use egui_plotter::{Chart, MouseConfig};
@@ -19,7 +20,7 @@ fn main() {
 }
 
 struct Chart3d {
-    chart: Chart<()>,
+    chart: Chart<na::DVector<f64>>,
 }
 
 impl Chart3d {
@@ -34,12 +35,15 @@ impl Chart3d {
         // Also enable light mode
         context.set_visuals(Visuals::light());
 
+        // Calculate the coefficients for the sanco2 data once
+        let coeffs: na::DVector<f64> = sanco2_coeffs();
+
         // Create a new 3d chart with all mouse controls enabled and the chart slightly angled
-        let chart = Chart::new(())
+        let chart: Chart<na::DVector<f64>> = Chart::new(coeffs)
             .mouse(MouseConfig::enabled())
             .pitch(0.3)
             .yaw(0.7)
-            .builder_cb(Box::new(|area, transform, _d| {
+            .builder_cb(Box::new(|area, transform, coeffs| {
                 // Build a chart like you would in any other plotter chart.
                 // The drawing area and projection trans5ormations are provided
                 // by the callback, but otherwise everything else is the same.
@@ -71,9 +75,6 @@ impl Chart3d {
                     .max_light_lines(3)
                     .draw()
                     .unwrap();
-
-                // Shouldn't be calculating the coefficients every frame, they don't change!
-                let coeffs = sanco2_coeffs();
 
                 // Draw a SurfaceSeries in RED and it's label is "Scan02"
                 chart_ctx
