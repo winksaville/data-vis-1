@@ -1,10 +1,10 @@
-use nalgebra as na;
 use lazy_static::lazy_static;
+use nalgebra as na;
 
 pub struct Point3D {
-    x: f64,
-    y: f64,
-    z: f64,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
 impl Point3D {
@@ -17,13 +17,15 @@ impl Point3D {
 lazy_static! {
     // Sanden SANCO2 from page 13 of this manual:
     //   https://static1.squarespace.com/static/5c1a79ca96d455dcbffdc742/t/5c474cee562fa759dd733b04/1548176625850/Sanden_sanc02_technical-info_10-2017_4.pdf
-    static ref SANCO2_POINTS: [Point3D; 29] = [
+    static ref SANCO2_POINTS: [Point3D; 32] = [
         Point3D::new(-13.0, 1.75, 140.0),
         Point3D::new(-13.0, 1.7, 150.0),
         Point3D::new(-13.0, 1.6, 160.0),
+        Point3D::new(-13.0, 1.3, 175.0), // fake
         Point3D::new(-4.0, 2.0, 140.0),
         Point3D::new(-4.0, 1.8, 150.0),
         Point3D::new(-4.0, 1.9, 160.0),
+        Point3D::new(-4.0, 1.5, 175.0), // fake
         Point3D::new(5.0, 2.2, 140.0),
         Point3D::new(5.0, 2.2, 150.0),
         Point3D::new(5.0, 2.1, 160.0),
@@ -47,6 +49,7 @@ lazy_static! {
         Point3D::new(108.0, 3.8, 140.0),
         Point3D::new(108.0, 4.0, 150.0),
         Point3D::new(108.0, 3.95, 160.0),
+        Point3D::new(108.0, 3.0, 175.0), // fake
     ];
 }
 
@@ -98,7 +101,14 @@ pub fn mean_squared_error(points: &[Point3D], coeffs: &na::DVector<f64>) -> f64 
     let number_points = points.len() as f64;
     points
         .iter()
-        .map(|point| (point.y - predict_y(point.x, point.y, coeffs)).powi(2))
+        .map(|point| {
+            let py = predict_y(point.x, point.z, coeffs);
+            let e = point.y - py;
+            #[allow(clippy::let_and_return)]
+            let e2 = e.powi(2);
+            //println!("mse: (x:{:0.2}, z:{:0.2}) y:{:0.2?} py:{py} e:{e} e2:{e2}", point.x, point.z, point.y);
+            e2
+        })
         .sum::<f64>()
         / number_points
 }
@@ -112,12 +122,16 @@ mod test {
     use super::*;
 
     #[test]
-    fn test1() {
+    fn test_mse() {
+        const MAX_MSE: f64 = 0.025;
         let coeffs = sanco2_coeffs();
 
         // A simple test might be to ensure the MSE is below a certain threshold
         let mse = mean_squared_error(sanco2_points(), &coeffs);
         println!("test_regression: mse={mse}");
-        assert!(mse < 1.0); // Not good enough if it fails
+        assert!(
+            mse <= MAX_MSE,
+            "Expected mse to <= {MAX_MSE:0.3} it was {mse:0.3}"
+        );
     }
 }
