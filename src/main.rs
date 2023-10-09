@@ -48,13 +48,13 @@ impl Chart3d {
                 let y_axis = (0.0..6.0).step(0.1);
 
                 // Define a chart with a caption and 3d cartesian coordinate system
-                let mut chart = ChartBuilder::on(area)
+                let mut chart_ctx = ChartBuilder::on(area)
                     .caption("Data visualization 1", (FontFamily::SansSerif, 20))
                     .build_cartesian_3d(x_axis, y_axis, z_axis)
                     .unwrap();
 
                 // Position the camera
-                chart.with_projection(|mut pb| {
+                chart_ctx.with_projection(|mut pb| {
                     pb.yaw = transform.yaw;
                     pb.pitch = transform.pitch;
                     pb.scale = 0.7; // Set scale to 0.7 to avoid artifacts caused by plotter's renderer
@@ -62,7 +62,7 @@ impl Chart3d {
                 });
 
                 // Draw a axis, grid and grid labels
-                chart
+                chart_ctx
                     .configure_axes()
                     .x_formatter(&|x| format!("x={x:0.1}"))
                     .y_formatter(&|y| format!("y={y:0.1}"))
@@ -72,10 +72,11 @@ impl Chart3d {
                     .draw()
                     .unwrap();
 
+                // Shouldn't be calculating the coefficients every frame, they don't change!
                 let coeffs = sanco2_coeffs();
 
                 // Draw a SurfaceSeries in RED and it's label is "Scan02"
-                chart
+                chart_ctx
                     .draw_series(
                         SurfaceSeries::xoz(
                             (-15..=110).map(|f| {
@@ -107,7 +108,7 @@ impl Chart3d {
 
                 if SHOW_SANCO2_POINTS {
                     // Draw a Scatter in Blue and it's label is "Scan02 Points"
-                    chart
+                    chart_ctx
                         .draw_series(
                             SurfaceSeries::xoz(
                                 sanco2_points().iter().map(|point| {
@@ -138,7 +139,7 @@ impl Chart3d {
                 }
 
                 // Draw the legend for all elements in the chart
-                chart
+                chart_ctx
                     .configure_series_labels()
                     .border_style(BLACK)
                     .draw()
